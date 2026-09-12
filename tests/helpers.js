@@ -18,7 +18,23 @@ export function makeTempProject() {
 export function makeTempProjectWithPhase() {
   const dir = makeTempProject();
   setProfile(dir, testProfile());
-  scaffoldPlan(dir, { phases: [{ slug: 'foundations', title: 'Foundations' }, { slug: 'everyday', title: 'Everyday' }] });
+  scaffoldPlan(dir, {
+    phases: [
+      {
+        slug: 'foundations',
+        title: 'Foundations',
+        competencies: [
+          { id: 'vocab-basic', required: true, critical: false },
+          { id: 'listening-basic', required: true, critical: true }
+        ]
+      },
+      {
+        slug: 'everyday',
+        title: 'Everyday',
+        competencies: [{ id: 'everyday-core', required: true, critical: true }]
+      }
+    ]
+  });
   return dir;
 }
 

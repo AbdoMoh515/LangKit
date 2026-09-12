@@ -257,6 +257,27 @@ pending → active → (test recorded) → passed → merged
 18. README no longer advertises exact test counts; it instructs running
     `npm test` (counts rot, output does not lie).
 
+## 14. Post-review corrections (external review round 2)
+
+19. Merge-failure recovery: the terminal state commit (status `merged`,
+    `current_phase = null`) is made on the phase branch before the
+    `--no-ff` merge so the merge commit carries it — but if the merge
+    fails, the pre-merge `state.json` is restored on the phase branch with
+    an explicit checkpoint commit
+    (`checkpoint(progress): phase NN merge failed, state restored`).
+    The phase returns to `passed`/active and the merge is retryable after
+    the user resolves the conflict. Append-only; no history rewriting.
+    `main` never receives the failed terminal state.
+20. Competencies are **mandatory for newly registered phases**
+    (`scaffoldPlan` rejects phases without them). Rationale: without
+    registered competencies the test-result gate is a no-op, so the strongest
+    protection against an easier-than-planned phase test could be bypassed
+    by omission. Legacy phases registered before this rule keep no-op
+    enforcement for compatibility; prefer re-registering them with
+    competencies at the next replanning point.
+21. CI is deliberately deferred until after the real OpenCode learner
+    workflow survives: commit N = correctness, commit N+1 = infrastructure.
+
 ## 12. Build order (spec §43)
 
 Stages 1–10 as specified: bootstrap → state → OpenCode integration →

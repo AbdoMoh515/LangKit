@@ -55,7 +55,10 @@ Write the phase registry, including per-phase competencies:
 then `lang plan scaffold --file .lang-tmp-plan.json`.
 Phase ids are assigned by order (phase-01, phase-02, ...). Curriculum detail
 lives in markdown; the phase registry (ids, order, competencies) is machine
-state. Registering competencies is strongly recommended: the CLI then
-refuses phase test results that assess unregistered competencies, drop
-required ones, or tamper with criticality flags — the test cannot quietly
-become easier than the plan.
+state. **Competencies are mandatory for every newly registered phase** — the
+CLI rejects scaffolds without them. The CLI then refuses phase test results
+that assess unregistered competencies, drop required ones, or tamper with
+criticality flags — the test cannot quietly become easier than the plan.
+(Phases registered before this rule existed may have no competencies; for
+those the enforcement is a no-op. Prefer replanning them with competencies
+at the next natural replanning point.)

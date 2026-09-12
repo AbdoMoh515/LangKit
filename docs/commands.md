@@ -22,8 +22,8 @@ lang plan scaffold --file plan.json
 # plan.json: {"phases":[{"slug":"foundations","title":"Foundations",
 #   "competencies":[{"id":"greetings","required":true,"critical":true}, ...]}, ...]}
 # registers phase-01..phase-NN (status pending) into state.json, commits.
-# competencies are optional but strongly recommended: when registered, the
-# phase test may only assess those ids with those exact flags.
+# competencies are REQUIRED for every phase: the phase test is enforced
+# against them. legacy phases without competencies keep no-op enforcement.
 ```
 
 ## State
@@ -91,7 +91,11 @@ lang phase next [--date D]      # begin next pending phase from latest main
 ```
 
 Merge preconditions: phase `passed`, on the phase branch, project paths
-clean. Conflicts abort the merge safely and stop.
+clean. Conflicts abort the merge safely and stop. On failure the phase state
+is **restored automatically** with a checkpoint commit on the phase branch
+(`checkpoint(progress): phase NN merge failed, state restored`) — the phase
+returns to `passed`/active and the merge can be retried after the user
+resolves the conflict. No history is rewritten.
 
 ## Validation / diagnostics
 

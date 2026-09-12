@@ -20,7 +20,7 @@ const day2 = iso(new Date(Date.now()));
 
 test('end-to-end lifecycle: init â†’ profile â†’ plan â†’ phase â†’ sessions â†’ csv â†’ test â†’ merge â†’ next', () => {
   run(['profile', 'set', '--file', writeJson(root, 'p.json', testProfile())]);
-  run(['plan', 'scaffold', '--file', writeJson(root, 'plan.json', { phases: [{ slug: 'foundations', title: 'Foundations' }, { slug: 'everyday', title: 'Everyday' }] })]);
+  run(['plan', 'scaffold', '--file', writeJson(root, 'plan.json', { phases: [{ slug: 'foundations', title: 'Foundations', competencies: [{ id: 'vocab-basic', required: true, critical: false }, { id: 'listening-basic', required: true, critical: true }] }, { slug: 'everyday', title: 'Everyday', competencies: [{ id: 'everyday-core', required: true, critical: true }] }] })]);
   run(['phase', 'begin', '--id', 'phase-01']);
 
   run(['session', 'start', '--date', day1]);
@@ -50,7 +50,7 @@ test('end-to-end lifecycle: init â†’ profile â†’ plan â†’ phase �
 
 test('cli blocks session start on a new day without anki confirmation', () => {
   run(['profile', 'set', '--file', writeJson(root, 'p.json', testProfile())]);
-  run(['plan', 'scaffold', '--file', writeJson(root, 'plan.json', { phases: [{ slug: 'foundations' }] })]);
+  run(['plan', 'scaffold', '--file', writeJson(root, 'plan.json', { phases: [{ slug: 'foundations', competencies: [{ id: 'vocab-basic', required: true, critical: false }] }] })]);
   run(['phase', 'begin', '--id', 'phase-01']);
   run(['session', 'start', '--date', day1]);
   run(['session', 'complete', '--file', writeJson(root, 's.json', sessionRecord(1, 'phase-01', day1))]);
@@ -59,7 +59,7 @@ test('cli blocks session start on a new day without anki confirmation', () => {
 
 test('cli rejects destructive expectations: merge without pass does nothing', () => {
   run(['profile', 'set', '--file', writeJson(root, 'p.json', testProfile())]);
-  run(['plan', 'scaffold', '--file', writeJson(root, 'plan.json', { phases: [{ slug: 'foundations' }] })]);
+  run(['plan', 'scaffold', '--file', writeJson(root, 'plan.json', { phases: [{ slug: 'foundations', competencies: [{ id: 'vocab-basic', required: true, critical: false }] }] })]);
   run(['phase', 'begin', '--id', 'phase-01']);
   const state = JSON.parse(fs.readFileSync(path.join(root, 'learner', 'state.json'), 'utf8'));
   assert.equal(state.current_phase.id, 'phase-01');

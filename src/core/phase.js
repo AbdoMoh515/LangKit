@@ -46,7 +46,14 @@ export function scaffoldPlan(root, { phases }) {
 }
 
 export function validateCompetencyList(competencies, label) {
-  if (competencies === undefined) return [];
+  if (competencies === undefined || (Array.isArray(competencies) && competencies.length === 0)) {
+    throw new LangError(
+      `${label}.competencies is required and must be a non-empty array of ` +
+      '{id, required, critical}. competencies are what the phase test is checked ' +
+      'against; without them the test could quietly become easier than the plan. ' +
+      'legacy phases registered before this rule keep their no-op behavior'
+    );
+  }
   if (!Array.isArray(competencies)) {
     throw new LangError(`${label}.competencies must be an array`);
   }
@@ -264,6 +271,10 @@ export function mergePhase(root, git, { confirm }) {
   if (!confirm) {
     return { merged: false, dryRun: true, checks };
   }
+
+  const preMergeStateJson = JSON.stringify(state, null, 2) + '\n';
+  const stateFile = within(root, LAYOUT.stateJson);
+
   try {
     phase.status = 'merged';
     state.current_phase = null;
@@ -277,9 +288,26 @@ export function mergePhase(root, git, { confirm }) {
     } catch {
       /* nothing to abort */
     }
+    try {
+      git.switchBranch(phase.branch);
+      fs.writeFileSync(stateFile, preMergeStateJson, 'utf8');
+      git.stageAndCommit(
+        `checkpoint(progress): phase ${phase.id} merge failed, state restored`,
+        [LAYOUT.learnerDir]
+      );
+    } catch (restoreErr) {
+      throw new LangError(
+        'phase merge failed AND automatic state restoration failed. ' +
+        'do NOT hand-edit state files; ask the user to inspect git history. ' +
+        `original merge error: ${err.message}. restoration error: ${restoreErr.message}`,
+        { code: 9 }
+      );
+    }
     throw new LangError(
-      'phase merge failed (possible conflict). the merge was aborted; nothing was lost. ' +
-      'resolve manually with the user before retrying: ' + err.message,
+      `phase merge failed (possible conflict). the merge was aborted and the phase state was ` +
+      `restored on branch "${phase.branch}" (status "passed", phase still active) — ` +
+      'the phase can be retried once the conflict is resolved with the user. ' +
+      'nothing was lost and no history was rewritten: ' + err.message,
       { code: 7 }
     );
   }

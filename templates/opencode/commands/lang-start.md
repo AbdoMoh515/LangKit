@@ -34,9 +34,10 @@ Current levels are not decorative: they constrain teaching difficulty.
    plan for each phase folder later.
 3. Write `.lang-tmp-plan.json` as
    `{"phases":[{"slug":"...","title":"...","competencies":[{"id":"...","required":true,"critical":false}]}]}`
-   in learning order (competencies strongly recommended — the CLI then
-   enforces that phase tests assess exactly the registered competencies) and
-   run: `lang plan scaffold --file .lang-tmp-plan.json`; delete the temp file.
+   in learning order. **Competencies are required for every phase** — the CLI
+   refuses to register a phase without them, because the phase test is
+   enforced against them. Run:
+   `lang plan scaffold --file .lang-tmp-plan.json`; delete the temp file.
 4. Begin the first phase: `lang phase begin --id phase-01`
 5. Write the full phase-01 plan into `phases/phase-01/plan.md` (objective,
    target competencies, topics, effort, timeline, progression criteria, and

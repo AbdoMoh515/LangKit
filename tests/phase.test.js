@@ -1,4 +1,4 @@
-import { test, beforeEach, afterEach } from 'node:test';
+﻿import { test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -35,7 +35,7 @@ test('phase begin requires main and rejects double activation', () => {
   assert.throws(() => beginPhase(root, git, { idOrSlug: 'phase-02', date: '2026-09-12' }), /already active/);
 });
 
-test('phase cannot merge before test passes (spec §33.6)', () => {
+test('phase cannot merge before test passes (spec Â§33.6)', () => {
   beginPhase(root, git, { idOrSlug: 'phase-01', date: '2026-09-12' });
   const outcome = mergePhase(root, git, { confirm: true });
   assert.equal(outcome.merged, false);
@@ -44,12 +44,18 @@ test('phase cannot merge before test passes (spec §33.6)', () => {
 
 test('failed test keeps phase active and records weak areas; passed test gates merge', () => {
   beginPhase(root, git, { idOrSlug: 'phase-01', date: '2026-09-12' });
-  const failing = phaseTestResult({ score: 50, competencies: [{ id: 'vocab', required: true, critical: false, score: 40 }] });
+  const failing = phaseTestResult({
+    score: 50,
+    competencies: [
+      { id: 'vocab-basic', required: true, critical: false, score: 40 },
+      { id: 'listening-basic', required: true, critical: true, score: 55 }
+    ]
+  });
   const r1 = recordTestResult(root, git, { result: failing });
   assert.equal(r1.evaluation.passed, false);
   assert.equal(r1.phase.status, 'active');
   const state1 = loadState(root);
-  assert.ok(state1.derived.weak_areas.includes('vocab'));
+  assert.ok(state1.derived.weak_areas.includes('vocab-basic'));
 
   const passing = phaseTestResult();
   const r2 = recordTestResult(root, git, { result: passing });
@@ -85,5 +91,8 @@ test('evaluatePhaseTest is exposed and consistent', () => {
 });
 
 test('scaffoldPlan rejects duplicate registration', () => {
-  assert.throws(() => scaffoldPlan(root, { phases: [{ slug: 'foundations' }] }), /already registered/);
+  assert.throws(
+    () => scaffoldPlan(root, { phases: [{ slug: 'foundations', competencies: [{ id: 'vocab-basic', required: true, critical: false }] }] }),
+    /already registered/
+  );
 });
