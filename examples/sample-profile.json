@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "target_language": "Indonesian",
+  "source_language": "English",
+  "target_level": "beginner",
+  "source_level": "native",
+  "daily_time": { "mode": "fixed", "minutes": 30 },
+  "duration": { "mode": "user", "months": 6 },
+  "skills": ["vocabulary", "listening", "speaking"],
+  "style_preferences": "examples first, minimal grammar jargon",
+  "goals": "hold basic conversations while traveling in Indonesia",
+  "strengths": [],
+  "weaknesses": ["listening"]
+}
