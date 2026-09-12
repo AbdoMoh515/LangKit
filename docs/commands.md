@@ -19,8 +19,11 @@ lang profile get                 # print profile JSON ({"set": false} if unset)
 
 ```bash
 lang plan scaffold --file plan.json
-# plan.json: {"phases":[{"slug":"foundations","title":"Foundations"}, ...]}
-# registers phase-01..phase-NN (status pending) into state.json, commits
+# plan.json: {"phases":[{"slug":"foundations","title":"Foundations",
+#   "competencies":[{"id":"greetings","required":true,"critical":true}, ...]}, ...]}
+# registers phase-01..phase-NN (status pending) into state.json, commits.
+# competencies are optional but strongly recommended: when registered, the
+# phase test may only assess those ids with those exact flags.
 ```
 
 ## State
@@ -80,6 +83,8 @@ lang phase test-result --file r.json         # evaluate + store + commit
 # r.json: {"score":85,"competencies":[{"id","required","critical","score"}]}
 # pass = score>=80 AND all required assessed AND no critical failed
 #        AND at most one required non-critical below 80
+# when the phase has registered competencies, result ids must match them
+# exactly (same ids, same required/critical flags, none missing)
 
 lang phase merge [--confirm]    # dry run by default; --confirm merges --no-ff
 lang phase next [--date D]      # begin next pending phase from latest main

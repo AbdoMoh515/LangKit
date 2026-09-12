@@ -47,8 +47,13 @@ Run one adaptive learning session. Load `skills/lang/SKILL.md`, then
      `lang vocab record --lemma L --sense S --type recall|usage --success true|false --date <today>`
 9. When the session's intended target is adequately completed (adaptive
    boundary, not a clock), finish:
-   - If new vocabulary was introduced and confirmed learned, run
-     `lang csv export --session N` (creates `vocabulary/anki/session-NNN.csv`).
+   - If new vocabulary was introduced this session, run
+     `lang csv export --session N` after the session is completed (creates
+     `vocabulary/anki/session-NNN.csv`). Eligibility is deterministic: the
+     CLI exports every item introduced in session N that has not been
+     exported yet. Do not editorialize about whether a word was "learned" —
+     introduction + recorded evidence is the gate; spaced mastery is Anki's
+     and the registry's job, decided by evidence across days.
    - Write the human-readable log `phases/<phase>/sessions/session-NNN.md`
      (what was taught, results, errors, remediation, next steps).
    - Write `.lang-tmp-session.json`:

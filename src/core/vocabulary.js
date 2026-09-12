@@ -108,6 +108,12 @@ export function recordEvidence(root, registry, { lemma, sense_id, language, type
   if (typeof success !== 'boolean') {
     throw new LangError('--success must be true or false');
   }
+  if (item.introduced_on && date < item.introduced_on) {
+    throw new LangError(
+      `evidence date ${date} precedes introduction date ${item.introduced_on} for "${lemma}" (${sense_id}). ` +
+      'evidence cannot exist before the item was taught'
+    );
+  }
   if (!item.exposure_days.includes(date)) item.exposure_days.push(date);
   if (success) {
     if (type === 'recall') item.successful_recalls += 1;
@@ -134,6 +140,23 @@ export function classifyWords(registry, words, language) {
   for (const w of words) out[w] = classifyWord(registry, w, language);
   return out;
 }
+
+export function vocabularyBudget(registry, words, language) {
+  const classification = classifyWords(registry, words, language);
+  const unknownWords = Object.keys(classification).filter((w) => classification[w] === 'unknown');
+  const learningWords = Object.keys(classification).filter((w) => classification[w] === 'learning');
+  const knownWords = Object.keys(classification).filter((w) => classification[w] === 'known');
+  return {
+    classification,
+    knownWords,
+    learningWords,
+    unknownWords,
+    unknownCount: unknownWords.length,
+    fairForAssessment: unknownWords.length <= MAX_SUPPORTING_UNKNOWN
+  };
+}
+
+export const MAX_SUPPORTING_UNKNOWN = 2;
 
 export function itemsIntroducedInSession(registry, sessionNumber) {
   return registry.items.filter((i) => i.introduced_session === sessionNumber);

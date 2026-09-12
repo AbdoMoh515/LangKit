@@ -30,6 +30,11 @@ CLI only.
 new → learning → familiar → mastered
 ```
 
+`new` means **registered but not yet actively taught** (reserved for future
+import of known vocabulary). Items introduced through a teaching session
+start directly at `learning` — being taught is what moves an item out of
+`new`.
+
 `mastered` requires (enforced by CLI, not configurable): ≥3 successful
 recalls, ≥1 successful usage, successes on ≥2 distinct days, exposure on
 ≥2 days. `familiar` requires ≥1 successful recall and ≥2 exposure days.

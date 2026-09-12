@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import { LangError } from './errors.js';
 import { LAYOUT, within, readJson, writeJson } from './paths.js';
 import { validateProfile, SCHEMA_VERSION } from './schema.js';
+import { loadState } from './state.js';
 
 export function emptyProfile() {
   return {
@@ -64,6 +65,21 @@ export function renderProfileMarkdown(p) {
 }
 
 export function setProfile(root, profileObj) {
+  validateProfile(profileObj);
+  const existing = profileExists(root) ? loadProfile(root) : null;
+  const state = loadState(root);
+  if (state.phases.length > 0 && existing) {
+    if (existing.target_language !== profileObj.target_language ||
+        existing.source_language !== profileObj.source_language) {
+      throw new LangError(
+        'refusing to change target/source language after the curriculum exists ' +
+        `(registered phases: ${state.phases.length}). the existing curriculum was planned for ` +
+        `"${existing.target_language}" from "${existing.source_language}". ` +
+        'changing languages requires a new project or explicit replanning with the learner; ' +
+        'never silently invalidate the curriculum.'
+      );
+    }
+  }
   return saveProfile(root, profileObj);
 }
 

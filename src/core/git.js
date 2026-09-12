@@ -76,13 +76,6 @@ export function createGitAdapter(repoPath, opts = {}) {
     init() {
       run(['init', '-b', 'main']);
     },
-    setLocalIdentityIfMissing(name, email) {
-      const has = (k) => {
-        try { return run(['config', k]).length > 0; } catch { return false; }
-      };
-      if (!has('user.name')) run(['config', 'user.name', name]);
-      if (!has('user.email')) run(['config', 'user.email', email]);
-    },
     add(paths) {
       if (paths.length) run(['add', '--', ...paths]);
     },

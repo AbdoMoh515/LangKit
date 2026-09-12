@@ -112,11 +112,21 @@ function applyRecordToState(root, state, record) {
   computeDerived(state, allSessionRecords(root, state));
 }
 
-export function saveSessionCheckpoint(root, { record, git }) {
-  const state = loadState(root);
+function assertRecordMatchesCurrentPhase(state, record) {
   if (!state.current_session || state.current_session.number !== record.number) {
     throw new LangError(`session ${record.number} is not the current session. start or resume it first`);
   }
+  if (state.current_session.phase_id !== record.phase_id) {
+    throw new LangError(
+      `session record claims phase "${record.phase_id}" but the current session belongs to phase "${state.current_session.phase_id}". ` +
+      'refusing to record cross-phase session data'
+    );
+  }
+}
+
+export function saveSessionCheckpoint(root, { record, git }) {
+  const state = loadState(root);
+  assertRecordMatchesCurrentPhase(state, record);
   if (record.status === 'completed') {
     throw new LangError('use "lang session complete" to complete a session');
   }
@@ -131,9 +141,7 @@ export function saveSessionCheckpoint(root, { record, git }) {
 
 export function completeSession(root, { record, git }) {
   const state = loadState(root);
-  if (!state.current_session || state.current_session.number !== record.number) {
-    throw new LangError(`session ${record.number} is not the current session. start or resume it first`);
-  }
+  assertRecordMatchesCurrentPhase(state, record);
   record.status = 'completed';
   saveSessionRecord(root, record);
   applyRecordToState(root, state, record);

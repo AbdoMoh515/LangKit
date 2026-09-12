@@ -14,6 +14,13 @@ grammar, listening, reading, writing, speaking/conversation — only skills
 relevant to the phase and learner plan. Mark each required competency and
 whether it is **critical** in the test blueprint.
 
+If the phase has **registered competencies** (from `lang plan scaffold`,
+visible in `phases/<phase>/competencies.json`), the CLI enforces that the
+test result assesses exactly those ids with exactly those required/critical
+flags — no invented easier test, no dropped competency. If the curriculum
+genuinely changed, replan and re-register first; never bend the test to the
+result you want.
+
 ## Pass policy (enforced by CLI)
 
 ```text

@@ -236,6 +236,27 @@ pending → active → (test recorded) → passed → merged
     missing directories, ghost branches) rather than checkout-induced
     "mismatches", which are self-consistent by construction.
 
+## 13. Post-review corrections (external review round 1)
+
+13. Semantic guards beyond schema validation (schema-valid ≠ logically
+    valid): `profile set` refuses target/source language changes once phases
+    are registered; `anki-confirm` refuses future dates; `vocab record`
+    refuses evidence dated before introduction; session save/complete refuse
+    records claiming a different phase than the current session.
+14. Merge lifecycle: completion state is committed on the phase branch
+    *before* the `--no-ff` merge, so the merge commit itself carries the
+    final state; no post-merge chore commit.
+15. Git identity fallback retained (spec §5.8 requires an initial commit and
+    many machines have none) but disclosed loudly in `init` output with the
+    exact replacement commands.
+16. Anki export eligibility is deterministic: items introduced in session N
+    and not yet exported. The agent never gates export on its own belief
+    that a word was "learned".
+17. `new` registry status means "registered but not yet actively taught"
+    (reserved for future import); taught items start at `learning`.
+18. README no longer advertises exact test counts; it instructs running
+    `npm test` (counts rot, output does not lie).
+
 ## 12. Build order (spec §43)
 
 Stages 1–10 as specified: bootstrap → state → OpenCode integration →

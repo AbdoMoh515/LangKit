@@ -85,10 +85,19 @@ export function validateState(s) {
   check(isArr(s.phases), 'state.phases must be an array');
   for (const ph of s.phases) {
     check(isObj(ph), 'phases entries must be objects');
-    checkOnlyKeys(ph, ['id', 'order', 'slug', 'title', 'status', 'branch'], 'phases entry');
+    checkOnlyKeys(ph, ['id', 'order', 'slug', 'title', 'status', 'branch', 'competencies'], 'phases entry');
     check(isStr(ph.id) && isNum(ph.order) && isStr(ph.slug) && isStr(ph.title) &&
-      ['pending', 'active', 'testing', 'passed', 'merged'].includes(ph.status) && isStrOrNull(ph.branch),
+      ['pending', 'active', 'passed', 'merged'].includes(ph.status) && isStrOrNull(ph.branch),
       'phases entry is malformed');
+    if (ph.competencies !== undefined) {
+      check(isArr(ph.competencies), 'phases competencies must be an array');
+      for (const c of ph.competencies) {
+        check(isObj(c), 'competency entries must be objects');
+        checkOnlyKeys(c, ['id', 'required', 'critical'], 'competency');
+        check(isStr(c.id) && c.id.length > 0 && typeof c.required === 'boolean' && typeof c.critical === 'boolean',
+          'competency entries must have id/required/critical');
+      }
+    }
   }
   check(s.last_activity === null || ISO_DATE.test(s.last_activity), 'state.last_activity must be an ISO date or null');
   check(s.last_anki_confirmed_date === null || ISO_DATE.test(s.last_anki_confirmed_date),

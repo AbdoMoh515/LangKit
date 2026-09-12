@@ -22,6 +22,7 @@ export function scaffoldPlan(root, { phases }) {
     if (!entry || typeof entry.slug !== 'string' || !entry.slug.trim()) {
       throw new LangError(`phases[${i}] must have a "slug" string`);
     }
+    const competencies = validateCompetencyList(entry.competencies, `phases[${i}]`);
     const order = typeof entry.order === 'number' ? entry.order : i + 1;
     const id = `phase-${String(order).padStart(2, '0')}`;
     if (existingIds.has(id) || existingSlugs.has(entry.slug)) {
@@ -33,7 +34,8 @@ export function scaffoldPlan(root, { phases }) {
       slug: entry.slug,
       title: typeof entry.title === 'string' ? entry.title : entry.slug,
       status: 'pending',
-      branch: null
+      branch: null,
+      competencies
     });
     existingIds.add(id);
     existingSlugs.add(entry.slug);
@@ -41,6 +43,30 @@ export function scaffoldPlan(root, { phases }) {
   state.phases.sort((a, b) => a.order - b.order);
   saveState(root, state);
   return state.phases;
+}
+
+export function validateCompetencyList(competencies, label) {
+  if (competencies === undefined) return [];
+  if (!Array.isArray(competencies)) {
+    throw new LangError(`${label}.competencies must be an array`);
+  }
+  const seen = new Set();
+  for (const c of competencies) {
+    if (!c || typeof c.id !== 'string' || !c.id.trim()) {
+      throw new LangError(`${label}.competencies entries must have a non-empty "id" string`);
+    }
+    if (typeof c.required !== 'boolean' || typeof c.critical !== 'boolean') {
+      throw new LangError(`competency "${c.id}" must have boolean "required" and "critical" flags`);
+    }
+    if (seen.has(c.id)) {
+      throw new LangError(`${label} has duplicate competency id "${c.id}"`);
+    }
+    seen.add(c.id);
+  }
+  if (!competencies.some((c) => c.required)) {
+    throw new LangError(`${label}.competencies must include at least one required competency`);
+  }
+  return competencies.map((c) => ({ id: c.id, required: c.required, critical: c.critical }));
 }
 
 export function phaseBranchName(phase) {
@@ -72,6 +98,9 @@ export function beginPhase(root, git, { idOrSlug, date }) {
   if (!fs.existsSync(path.join(dir, 'test.md'))) {
     fs.writeFileSync(path.join(dir, 'test.md'), phaseTestStub(phase), 'utf8');
   }
+  if (phase.competencies && phase.competencies.length) {
+    fs.writeFileSync(path.join(dir, 'competencies.json'), JSON.stringify(phase.competencies, null, 2) + '\n', 'utf8');
+  }
 
   phase.status = 'active';
   phase.branch = branch;
@@ -80,6 +109,18 @@ export function beginPhase(root, git, { idOrSlug, date }) {
   saveState(root, state);
   git.stageAndCommit(`feat(progress): begin ${phase.id}-${phase.slug}`, [LAYOUT.phasesDir, LAYOUT.learnerDir]);
   return { phase, branch };
+}
+
+function competencyTable(phase) {
+  const comps = phase.competencies || [];
+  if (!comps.length) return '';
+  const rows = comps.map((c) => `| ${c.id} | ${c.required ? 'yes' : 'no'} | ${c.critical ? 'yes' : 'no'} |`);
+  return [
+    '| Competency | Required | Critical |',
+    '|---|---|---|',
+    ...rows,
+    ''
+  ].join('\n');
 }
 
 function phasePlanStub(phase) {
@@ -95,6 +136,7 @@ function phasePlanStub(phase) {
     '',
     '## Target competencies',
     '',
+    competencyTable(phase),
     '## Learning topics',
     '',
     '## Estimated effort and timeline',
@@ -114,12 +156,50 @@ function phaseTestStub(phase) {
     '> phase competencies. Pass policy: overall >= 80%, every required',
     '> competency assessed, no critical competency failed, at most one',
     '> required non-critical competency below threshold.',
+    '> Only competencies registered for this phase may be assessed.',
     '',
     '## Required competencies',
     '',
+    competencyTable(phase),
     '## Sections',
     ''
   ].join('\n');
+}
+
+export function getRegisteredPhase(state, idOrSlug) {
+  return findPhase(state, idOrSlug);
+}
+
+export function validateResultAgainstPhase(phase, result) {
+  const registered = phase.competencies || [];
+  if (!registered.length) return;
+  const registeredById = new Map(registered.map((c) => [c.id, c]));
+  for (const c of result.competencies) {
+    if (!registeredById.has(c.id)) {
+      throw new LangError(
+        `competency "${c.id}" is not registered for ${phase.id}. ` +
+        'the phase test may only assess competencies from the registered phase plan ' +
+        '(registered: ' + registered.map((r) => r.id).join(', ') + '). ' +
+        'if the curriculum changed, replan and update the phase registration first — ' +
+        'never invent an easier test'
+      );
+    }
+    const reg = registeredById.get(c.id);
+    if (c.required !== reg.required || c.critical !== reg.critical) {
+      throw new LangError(
+        `competency "${c.id}" flags (required=${c.required}, critical=${c.critical}) contradict the ` +
+        `registered phase plan (required=${reg.required}, critical=${reg.critical}). ` +
+        'flags come from the phase plan, not from the test author'
+      );
+    }
+  }
+  const missing = registered.filter((r) => r.required && !result.competencies.some((c) => c.id === r.id));
+  if (missing.length) {
+    throw new LangError(
+      `phase test result is missing required competencies: ${missing.map((m) => m.id).join(', ')}. ` +
+      'every required competency must be assessed'
+    );
+  }
 }
 
 export function nextTestResultPath(root, phaseId) {
@@ -137,6 +217,7 @@ export function recordTestResult(root, git, { result }) {
   if (!['active', 'passed'].includes(phase.status)) {
     throw new LangError(`phase ${phase.id} has status "${phase.status}"; a test can only be recorded for an active phase`);
   }
+  validateResultAgainstPhase(phase, result);
   const evaluation = evaluatePhaseTest(result);
   const file = nextTestResultPath(root, phase.id);
   writeJson(file, { ...result, evaluation, recorded_at: new Date().toISOString() });
@@ -184,6 +265,10 @@ export function mergePhase(root, git, { confirm }) {
     return { merged: false, dryRun: true, checks };
   }
   try {
+    phase.status = 'merged';
+    state.current_phase = null;
+    saveState(root, state);
+    git.stageAndCommit(`chore(progress): record phase ${phase.id} merged`, [LAYOUT.learnerDir]);
     git.switchBranch('main');
     git.mergeNoFastForward(phase.branch, `merge: ${phase.branch} into main`);
   } catch (err) {
@@ -198,10 +283,6 @@ export function mergePhase(root, git, { confirm }) {
       { code: 7 }
     );
   }
-  phase.status = 'merged';
-  state.current_phase = null;
-  saveState(root, state);
-  git.stageAndCommit(`chore(progress): record phase ${phase.id} merged`, [LAYOUT.learnerDir]);
   return { merged: true, dryRun: false, checks, phase };
 }
 

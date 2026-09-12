@@ -126,8 +126,18 @@ export function initProject(root, { gitBin } = {}) {
   installTemplates(root);
 
   git.init();
-  git.setLocalIdentityIfMissing('Lang Learner', 'learner@lang.local');
+  const identitySet = ensureLocalIdentity(git);
   git.add(TRACKED_PATHS);
   git.commit('chore(init): initialize lang project');
-  return { root, branch: git.currentBranch() };
+  return { root, branch: git.currentBranch(), identitySet };
+}
+
+function ensureLocalIdentity(git) {
+  const has = (k) => {
+    try { return git.run(['config', k]).length > 0; } catch { return false; }
+  };
+  if (has('user.name') && has('user.email')) return false;
+  if (!has('user.name')) git.run(['config', 'user.name', 'Lang Learner']);
+  if (!has('user.email')) git.run(['config', 'user.email', 'learner@lang.local']);
+  return true;
 }

@@ -56,6 +56,20 @@ export function isSameDay(a, b) {
   return a === b;
 }
 
+export function assertNotFutureDate(date, today = new Date().toISOString().slice(0, 10)) {
+  if (date > today) {
+    throw new LangError(`date "${date}" is in the future (today is ${today}). confirmation dates must be real`);
+  }
+}
+
+export function confirmAnki(root, date, { today } = {}) {
+  assertNotFutureDate(date, today);
+  const state = loadState(root);
+  state.last_anki_confirmed_date = date;
+  saveState(root, state);
+  return state;
+}
+
 export function isNewLearningDay(state, today) {
   if (state.completed_sessions.length === 0) return false;
   return !isSameDay(state.last_activity, today);

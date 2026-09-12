@@ -148,10 +148,12 @@ subcommands used by the skill are documented in `docs/commands.md`.
 npm test
 ```
 
-76 deterministic tests cover CLI behavior, file creation, schema validation,
-mastery invariants, git safety rules, CSV formatting, template installation,
-phase state transitions, session lifecycle, consistency checks, and the full
-end-to-end lifecycle.
+The deterministic suite covers CLI behavior, file creation, schema
+validation, mastery invariants, git safety rules, CSV formatting, template
+installation, phase state transitions, session lifecycle, consistency
+checks, and the full end-to-end lifecycle. Run it yourself — the suite needs
+no network and finishes in seconds; the count of tests is whatever your
+checkout reports.
 
 ## Documentation
 

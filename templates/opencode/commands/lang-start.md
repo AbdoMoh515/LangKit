@@ -3,8 +3,8 @@ description: Set up the learner profile and generate the adaptive curriculum
 ---
 
 Initialize this Lang project: gather the learner model, register the
-curriculum, and begin phase 1. Follow `~/.opencode/skills/lang/` — load
-`SKILL.md` first, then `planning/curriculum.md`.
+curriculum, and begin phase 1. Load the project-local skill
+`.opencode/skills/lang/SKILL.md` first, then `planning/curriculum.md`.
 
 ## Interview (spec §8)
 
@@ -32,9 +32,11 @@ Current levels are not decorative: they constrain teaching difficulty.
 2. Generate the overall plan into `plan.md` (phases, milestones, objectives,
    estimated effort, dependencies, exit criteria — spec §9) and a detailed
    plan for each phase folder later.
-3. Write `.lang-tmp-plan.json` as `{"phases":[{"slug":"...","title":"..."}]}`
-   in learning order and run:
-   `lang plan scaffold --file .lang-tmp-plan.json`; delete the temp file.
+3. Write `.lang-tmp-plan.json` as
+   `{"phases":[{"slug":"...","title":"...","competencies":[{"id":"...","required":true,"critical":false}]}]}`
+   in learning order (competencies strongly recommended — the CLI then
+   enforces that phase tests assess exactly the registered competencies) and
+   run: `lang plan scaffold --file .lang-tmp-plan.json`; delete the temp file.
 4. Begin the first phase: `lang phase begin --id phase-01`
 5. Write the full phase-01 plan into `phases/phase-01/plan.md` (objective,
    target competencies, topics, effort, timeline, progression criteria, and

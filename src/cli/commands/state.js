@@ -1,6 +1,6 @@
 import { parseArgs, todayOr } from '../args.js';
 import { requireProjectRoot } from '../../core/paths.js';
-import { loadState, saveState } from '../../core/state.js';
+import { confirmAnki, loadState } from '../../core/state.js';
 import { createGitAdapter } from '../../core/git.js';
 import { stageAndCommitState } from '../../core/commits.js';
 
@@ -14,9 +14,7 @@ export function runState(rest, cwd) {
   }
   if (sub === 'anki-confirm') {
     const date = todayOr(opts);
-    const state = loadState(root);
-    state.last_anki_confirmed_date = date;
-    saveState(root, state);
+    confirmAnki(root, date);
     stageAndCommitState(createGitAdapter(root), root, `chore(progress): anki review confirmed ${date}`);
     console.log(`anki review confirmed for ${date}`);
     return;

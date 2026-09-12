@@ -39,7 +39,23 @@ mastery requires spaced evidence by design.
 
 ## Registering the plan
 
-Write `{"phases":[{"slug":"foundations","title":"Foundations"}, ...]}` in
-learning order, then `lang plan scaffold --file .lang-tmp-plan.json`.
+Write the phase registry, including per-phase competencies:
+
+```json
+{"phases":[
+  {"slug":"foundations","title":"Foundations",
+   "competencies":[
+     {"id":"greetings-courtesy","required":true,"critical":true},
+     {"id":"listening-basic","required":true,"critical":true},
+     {"id":"reading-basic","required":true,"critical":false}
+   ]}
+]}
+```
+
+then `lang plan scaffold --file .lang-tmp-plan.json`.
 Phase ids are assigned by order (phase-01, phase-02, ...). Curriculum detail
-lives in markdown; only the phase registry is machine state.
+lives in markdown; the phase registry (ids, order, competencies) is machine
+state. Registering competencies is strongly recommended: the CLI then
+refuses phase test results that assess unregistered competencies, drop
+required ones, or tamper with criticality flags — the test cannot quietly
+become easier than the plan.

@@ -57,12 +57,16 @@ test('init explains missing git and stops before touching the directory', () => 
   assert.equal(fs.readdirSync(dir).length, 0);
 });
 
-test('init sets repo-local identity fallback only when unset', () => {
-  initProject(dir);
+test('init sets repo-local identity fallback only when unset and reports it', () => {
+  const { identitySet } = initProject(dir);
   const git = createGitAdapter(dir);
   const name = git.run(['config', 'user.name']);
   const email = git.run(['config', 'user.email']);
   assert.ok(name.length > 0);
   assert.ok(email.length > 0);
+  if (identitySet) {
+    assert.equal(name, 'Lang Learner');
+    assert.equal(email, 'learner@lang.local');
+  }
   assert.doesNotThrow(() => runGit(dir, ['config', '--global', '--list']));
 });
