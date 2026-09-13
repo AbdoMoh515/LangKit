@@ -8,7 +8,8 @@ Run:
 lang status
 ```
 
-Then briefly interpret the output for the learner (2–4 sentences max):
+Then briefly interpret the output for the learner (2–4 sentences max) **in
+the learner's `source_language`** (see `core/learner-interaction.md`):
 where they are, how the current phase is going, and the single most useful
 next action. Do not dump analytics; this is an overview (spec §37).
 

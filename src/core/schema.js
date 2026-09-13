@@ -70,10 +70,13 @@ export function validateState(s) {
   }
   if (s.current_session !== null) {
     check(isObj(s.current_session), 'state.current_session must be null or an object');
-    checkOnlyKeys(s.current_session, ['number', 'phase_id', 'started_at', 'status'], 'state.current_session');
+    checkOnlyKeys(s.current_session, ['number', 'phase_id', 'started_at', 'status', 'stage'], 'state.current_session');
     check(isNum(s.current_session.number) && isStr(s.current_session.phase_id) &&
       isStr(s.current_session.started_at) && ['active', 'checkpoint'].includes(s.current_session.status),
       'state.current_session is malformed');
+    if (s.current_session.stage !== undefined) {
+      check(['teaching', 'testing'].includes(s.current_session.stage), 'state.current_session.stage must be teaching|testing');
+    }
   }
   check(isArr(s.completed_sessions), 'state.completed_sessions must be an array');
   for (const c of s.completed_sessions) {
@@ -149,13 +152,16 @@ export function validateRegistry(r) {
 export function validateSessionRecord(rec) {
   checkVersion(rec, 'session record');
   checkOnlyKeys(rec, [
-    'schema_version', 'number', 'phase_id', 'date', 'status', 'summary',
+    'schema_version', 'number', 'phase_id', 'date', 'status', 'stage', 'summary',
     'new_items', 'weak_areas', 'next_recommended_work', 'performance', 'anki'
   ], 'session record');
   check(isNum(rec.number) && rec.number > 0, 'session record.number must be a positive number');
   check(isStr(rec.phase_id) && rec.phase_id.length > 0, 'session record.phase_id must be a non-empty string');
   check(ISO_DATE.test(rec.date || ''), 'session record.date must be an ISO date');
   check(['active', 'checkpoint', 'completed'].includes(rec.status), 'session record.status must be active|checkpoint|completed');
+  if (rec.stage !== undefined) {
+    check(['teaching', 'testing'].includes(rec.stage), 'session record.stage must be teaching|testing');
+  }
   check(isStrOrNull(rec.summary), 'session record.summary must be a string or null');
   check(isArr(rec.new_items) && rec.new_items.every(isStr), 'session record.new_items must be an array of strings');
   check(isArr(rec.weak_areas) && rec.weak_areas.every(isStr), 'session record.weak_areas must be an array of strings');

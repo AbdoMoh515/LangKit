@@ -55,17 +55,25 @@ AND ≥2 exposure days.
 
 ```bash
 lang session start [--date D]
-# resumes an active/checkpoint session, or starts a new one.
+# resumes an active/checkpoint session, or starts a new one (stage: teaching).
+# prints the restored STAGE on resume:
+#   teaching → continue remaining teaching material
+#   testing  → continue the exercise phase directly
 # exits with ANKI_GATE_REQUIRED error on a new learning day (after the first)
 # until `lang state anki-confirm` records the learner's confirmation.
 
-lang session save --file record.json      # checkpoint; session stays resumable
+lang session stage --stage teaching|testing
+# persists the interaction stage of the current session (teaching → testing
+# only after the learner's explicit readiness signal); commits a checkpoint
+
+lang session save --file record.json      # checkpoint; session + stage stay resumable
 lang session complete --file record.json  # completes, updates derived, commits
 ```
 
 Record schema: see `templates/opencode/skills/lang/progress/state.md`.
-Commit messages: `feat(progress): complete session NN` /
-`checkpoint(progress): save session NN`.
+`stage` (`teaching|testing`) is optional in records; when omitted, the CLI
+preserves the stage already stored. Commit messages:
+`feat(progress): complete session NN` / `checkpoint(progress): save session NN`.
 
 ## Anki CSV
 

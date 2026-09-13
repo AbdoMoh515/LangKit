@@ -6,6 +6,11 @@ Initialize this Lang project: gather the learner model, register the
 curriculum, and begin phase 1. Load the project-local skill
 `.opencode/skills/lang/SKILL.md` first, then `planning/curriculum.md`.
 
+**Learner-facing language:** everything the learner sees during this
+interview and afterwards follows `profile.source_language` (see
+`core/learner-interaction.md`). Conduct the interview in the learner's
+source language; never fall back to English silently.
+
 ## Interview (spec §8)
 
 Ask via multiple-choice questions where possible. Gather, at minimum:

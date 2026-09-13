@@ -15,6 +15,7 @@ Load capability material on demand — do not assume it is in context:
 
 | Need | Load |
 |---|---|
+| Learner-facing language rule + teaching/testing stage contract | `core/learner-interaction.md` |
 | Session flow, lifecycle, safe tool behavior | `core/orchestration.md`, `core/safety.md` |
 | Initial curriculum, phase plans, replanning, time estimates | `planning/curriculum.md`, `planning/replanning.md` |
 | Teaching vocabulary, examples, pronunciation, difficulty control | `teaching/vocabulary-loop.md`, `teaching/difficulty.md`, `teaching/pronunciation.md` |
@@ -35,6 +36,20 @@ Internal command reference: `progress/state.md` and `progress/git.md`.
 
 ## Hard invariants (spec §33) — never violate
 
+0. **Learner-facing language rule.** `profile.source_language` is the default
+   language of ALL communication with the learner — explanations,
+   instructions, tests, corrections, feedback, motivation, summaries, error
+   explanations. Use the target language only as the material being taught or
+   in target-language examples. Never use English as a fallback learner-facing
+   language unless English is the learner's source language or the learner
+   explicitly asks for English. The English in this skill, the command
+   templates, and the CLI output is developer-facing and is NEVER permission
+   to address the learner in English. Before producing any learner-facing
+   content, inspect `learner/profile.json → source_language`. Priority:
+   (1) language the learner explicitly requested in the current message,
+   (2) `profile.source_language`, (3) if neither is available, ask the
+   learner. Never silently fall back to English. Full policy and examples:
+   `core/learner-interaction.md`.
 1. Never assess mastery mainly using material the learner did not have a fair
    opportunity to learn.
 2. Never make an exercise difficult mainly because of unrelated unknown
@@ -54,6 +69,12 @@ Internal command reference: `progress/state.md` and `progress/git.md`.
 11. Preserve resume capability after interrupted sessions (use
     `lang session save`, never abandon state).
 12. Prefer simple, auditable behavior over unnecessary autonomy.
+13. **Stage rule.** Teaching and testing are separate interactive stages.
+    Present the complete teaching batch first, then STOP and wait for the
+    learner's explicit readiness signal before testing. Never place a test
+    question in the same response as the vocabulary lesson. Persist the
+    transition with `lang session stage --stage testing` when the learner
+    confirms readiness. Full contract: `core/learner-interaction.md`.
 
 ## Interaction stance (spec §36)
 

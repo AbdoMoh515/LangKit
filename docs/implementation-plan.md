@@ -278,6 +278,27 @@ pending → active → (test recorded) → passed → merged
 21. CI is deliberately deferred until after the real OpenCode learner
     workflow survives: commit N = correctness, commit N+1 = infrastructure.
 
+## 15. Learner-workflow corrections (real workflow test round)
+
+22. Learner-facing language: `profile.source_language` is the authoritative
+    language of ALL learner-facing communication (explanations, instructions,
+    tests, feedback, motivation, summaries). Priority: learner's explicit
+    request in the current message > `profile.source_language` > ask. Never
+    silently fall back to English; English in skill/docs/CLI output is
+    developer-facing only. No language is hard-coded. Enforced via skill
+    invariant 0 + `core/learner-interaction.md`.
+23. Teaching and testing are separate interactive stages. The teaching
+    response presents the complete batch and STOPS with a readiness prompt in
+    the source language; testing begins only after an explicit readiness
+    signal; unrelated replies keep the teaching stage; readiness applies to
+    the batch, not a single item.
+24. Session stage persistence: session records (and
+    `state.current_session`) carry `stage: teaching|testing` (additive,
+    optional — schema_version unchanged). Transitions enforced by the CLI:
+    `teaching → testing` via `lang session stage --stage testing`; reverse
+    rejected; same-stage no-op; records omitting `stage` preserve the stored
+    value; legacy records without `stage` resume as `teaching`.
+
 ## 12. Build order (spec §43)
 
 Stages 1–10 as specified: bootstrap → state → OpenCode integration →

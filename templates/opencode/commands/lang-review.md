@@ -3,7 +3,9 @@ description: Intentional review / assessment workflow (weekly review, weak items
 ---
 
 Run an intentional review. Load `skills/lang/SKILL.md`, then
-`assessment/exercises.md` and `assessment/weekly-review.md`.
+`core/learner-interaction.md` (learner-facing language applies to every
+question, instruction, and feedback item), `assessment/exercises.md`, and
+`assessment/weekly-review.md`.
 
 This command does NOT replace Anki's daily scheduling (spec §38). It may:
 

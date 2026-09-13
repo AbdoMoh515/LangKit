@@ -18,6 +18,7 @@ export function emptySessionRecord(number, phaseId, date) {
     phase_id: phaseId,
     date,
     status: 'active',
+    stage: 'teaching',
     summary: null,
     new_items: [],
     weak_areas: [],
@@ -25,6 +26,30 @@ export function emptySessionRecord(number, phaseId, date) {
     performance: [],
     anki: false
   };
+}
+
+export function setSessionStage(root, { stage, git }) {
+  if (!['teaching', 'testing'].includes(stage)) {
+    throw new LangError('stage must be "teaching" or "testing"');
+  }
+  const state = loadState(root);
+  if (!state.current_session) {
+    throw new LangError('no active session. run "lang session start" first', { code: 4 });
+  }
+  const record = loadSessionRecord(root, state.current_session.phase_id, state.current_session.number);
+  if (record.stage === stage) {
+    return record;
+  }
+  if (record.stage === 'testing' && stage === 'teaching') {
+    throw new LangError('invalid stage transition: testing → teaching. teaching always precedes testing within a session');
+  }
+  record.stage = stage;
+  saveSessionRecord(root, record);
+  state.current_session.stage = stage;
+  markActivity(state, record.date);
+  saveState(root, state);
+  git.stageAndCommit(`checkpoint(progress): session ${pad(record.number)} stage ${stage}`, trackedPaths(root));
+  return record;
 }
 
 export function loadSessionRecord(root, phaseId, number) {
@@ -96,7 +121,7 @@ export function startOrResumeSession(root, { date, git }) {
   const number = nextSessionNumber(state);
   const record = emptySessionRecord(number, phase.id, date);
   saveSessionRecord(root, record);
-  state.current_session = { number, phase_id: phase.id, started_at: date, status: 'active' };
+  state.current_session = { number, phase_id: phase.id, started_at: date, status: 'active', stage: record.stage };
   markActivity(state, date);
   saveState(root, state);
   return { resumed: false, record, state, gate: { required: false, reason: 'first day or already confirmed' } };
@@ -124,15 +149,25 @@ function assertRecordMatchesCurrentPhase(state, record) {
   }
 }
 
+function mergePreservedFields(root, record) {
+  if (record.stage === undefined) {
+    const existing = loadSessionRecord(root, record.phase_id, record.number);
+    record.stage = existing.stage || 'teaching';
+  }
+  return record;
+}
+
 export function saveSessionCheckpoint(root, { record, git }) {
   const state = loadState(root);
   assertRecordMatchesCurrentPhase(state, record);
+  mergePreservedFields(root, record);
   if (record.status === 'completed') {
     throw new LangError('use "lang session complete" to complete a session');
   }
   record.status = 'checkpoint';
   saveSessionRecord(root, record);
   state.current_session.status = 'checkpoint';
+  state.current_session.stage = record.stage;
   markActivity(state, record.date);
   saveState(root, state);
   git.stageAndCommit(`checkpoint(progress): save session ${pad(record.number)}`, trackedPaths(root));
@@ -142,6 +177,7 @@ export function saveSessionCheckpoint(root, { record, git }) {
 export function completeSession(root, { record, git }) {
   const state = loadState(root);
   assertRecordMatchesCurrentPhase(state, record);
+  mergePreservedFields(root, record);
   record.status = 'completed';
   saveSessionRecord(root, record);
   applyRecordToState(root, state, record);

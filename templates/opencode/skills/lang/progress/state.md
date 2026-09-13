@@ -51,6 +51,7 @@ If `lang validate` reports a mismatch (e.g. branch vs stored phase):
   "phase_id": "phase-01",
   "date": "2026-09-12",
   "status": "active|checkpoint|completed",
+  "stage": "teaching|testing",
   "summary": "...",
   "new_items": ["it-0001"],
   "weak_areas": ["listening-basic"],
@@ -59,3 +60,11 @@ If `lang validate` reports a mismatch (e.g. branch vs stored phase):
   "anki": true
 }
 ```
+
+`stage` tracks the interaction stage within the session:
+`teaching → testing → completed`, either stage may checkpoint. Transition
+teaching → testing only after the learner's explicit readiness signal, via
+`lang session stage --stage testing`. On resume, the CLI reports the saved
+stage: `teaching` → continue remaining teaching; `testing` → continue
+testing. The stage is machine state; never infer it from the markdown log
+alone. Legacy records without `stage` are treated as `teaching`.
